@@ -1,0 +1,43 @@
+# Build directories
+build/
+builddir/
+
+# Meson subprojects (downloaded dependencies)
+subprojects/googletest-*/
+subprojects/Catch2-*/
+subprojects/packagecache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cache/
+
+# Compiled
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+
+# Debug
+*.dSYM/
+core
+vgcore.*
+
+# Coverage
+*.gcno
+*.gcda
+*.gcov
+coverage/
+
+# Generated
+compile_commands.json
+
+# OS
+.DS_Store
+Thumbs.db
