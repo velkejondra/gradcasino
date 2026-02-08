@@ -49,6 +49,7 @@ gradcasino_sources = files(
     'src/engine/engine.cpp',
     'src/engine/graph.cpp',
     'src/engine/double.cpp',
+    'src/engine/interpreter.cpp',
     'src/backend/llvm/codegen.cpp',
     'src/backend/llvm/jit.cpp',
 )

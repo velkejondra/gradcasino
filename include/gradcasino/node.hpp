@@ -27,6 +27,17 @@ enum class OpKind : std::uint8_t {
     Max,
     Min,
     
+    // Comparisons
+    GreaterThan,
+    LessThan,
+
+    // Control Flow
+    Select,
+    Loop,
+    BlockInput,  // Input to a block/region (phi source or argument)
+    Yield,       // Terminates a region and returns values
+    GetResult,   // Extracts value from multi-valued node (like Loop)
+    
     Grad,
 };
 
@@ -47,6 +58,13 @@ enum class OpKind : std::uint8_t {
         case OpKind::Pow:      return "Pow";
         case OpKind::Max:      return "Max";
         case OpKind::Min:      return "Min";
+        case OpKind::GreaterThan: return "GreaterThan";
+        case OpKind::LessThan:    return "LessThan";
+        case OpKind::Select:      return "Select";
+        case OpKind::Loop:        return "Loop";
+        case OpKind::BlockInput:  return "BlockInput";
+        case OpKind::Yield:       return "Yield";
+        case OpKind::GetResult:   return "GetResult";
         case OpKind::Grad:     return "Grad";
     }
     return "Unknown";
@@ -59,6 +77,12 @@ public:
     OpKind kind;
     std::vector<Ptr> inputs;
     double constant_value{0.0};
+    
+    // For loops/regions
+    std::vector<Ptr> body;  // Sub-graph nodes (for Loop)
+    std::vector<Ptr> args;  // BlockInput nodes (for Loop body)
+    std::size_t iteration_count{0}; // For Loop nodes
+    
     std::uint32_t id{0};
     std::uint32_t input_index{0};
     std::optional<std::string> name;
@@ -71,6 +95,7 @@ public:
     [[nodiscard]] static Ptr param_node(double value, std::uint32_t index, std::optional<std::string> name = {});
     [[nodiscard]] static Ptr unary(OpKind op, Ptr x);
     [[nodiscard]] static Ptr binary(OpKind op, Ptr lhs, Ptr rhs);
+    [[nodiscard]] static Ptr ternary(OpKind op, Ptr a, Ptr b, Ptr c);
     [[nodiscard]] static Ptr grad_node(Ptr output, Ptr wrt);
 
     [[nodiscard]] std::string display_name() const {

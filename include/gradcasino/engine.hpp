@@ -3,6 +3,7 @@
 #include "graph.hpp"
 #include "result.hpp"
 #include "double.hpp"
+#include "interpreter.hpp"
 #include <memory>
 #include <span>
 #include <vector>
@@ -42,12 +43,22 @@ private:
         std::span<const Node::Ptr> outputs,
         std::span<const Node::Ptr> inputs);
     
+    friend RawKernel compile_raw_interp(
+        std::span<const Node::Ptr> outputs,
+        std::span<const Node::Ptr> inputs,
+        InterpreterOptions opts);
+    
     explicit RawKernel(std::unique_ptr<Impl> impl) noexcept;
 };
 
 RawKernel compile_raw(
     std::span<const Node::Ptr> outputs,
     std::span<const Node::Ptr> inputs);
+
+RawKernel compile_raw_interp(
+    std::span<const Node::Ptr> outputs,
+    std::span<const Node::Ptr> inputs,
+    InterpreterOptions opts);
 
 template<std::size_t N>
 struct OutputResult {
@@ -140,10 +151,19 @@ template<typename... Ts>
     return result;
 }
 
+enum class Backend : std::uint8_t {
+    JIT,         ///< LLVM JIT (fast, not debuggable)
+    Interpreter  ///< Tree-walking interpreter (slow, debuggable)
+};
+
 struct CompileOptions {
+    Backend backend = Backend::JIT;
     bool enable_simd = true;
     bool enable_fast_math = false;
     std::size_t opt_level = 2;
+    
+    /// Interpreter-only: callback for each node evaluation
+    std::function<void(const Node&, double)> on_eval = nullptr;
     
     [[nodiscard]] bool operator==(const CompileOptions&) const = default;
 };
@@ -154,8 +174,17 @@ template<std::size_t NOut, std::size_t NIn>
     Inputs<NIn> ins,
     CompileOptions options = {}) {
     
-    (void)options;
+    if (options.backend == Backend::Interpreter) {
+        InterpreterOptions interp_opts;
+        interp_opts.on_eval = std::move(options.on_eval);
+        auto raw = detail::compile_raw_interp(outs.nodes, ins.nodes, std::move(interp_opts));
+        if (!raw) {
+            return Error{"Interpreter compilation failed"};
+        }
+        return Kernel<NOut, NIn>{std::move(raw), outs.ids};
+    }
     
+    // JIT path
     auto raw = detail::compile_raw(outs.nodes, ins.nodes);
     if (!raw) {
         return Error{"Compilation failed"};

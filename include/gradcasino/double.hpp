@@ -11,9 +11,14 @@ namespace gc {
 
 class Node;
 class Graph;
+class Double;
+
+// Loop variable / Loop index
+using Var = Double;
 
 template<typename T>
 concept Arithmetic = std::is_arithmetic_v<T>;
+
 
 class Double {
 public:
@@ -42,6 +47,19 @@ public:
     friend Double operator*(Double lhs, Double rhs);
     friend Double operator/(Double lhs, Double rhs);
     friend Double operator-(Double x);
+
+    // Comparison operators
+    friend Double operator>(Double lhs, Double rhs);
+    friend Double operator<(Double lhs, Double rhs);
+    
+    template<Arithmetic T>
+    friend Double operator>(Double lhs, T rhs) { return lhs > Double(rhs); }
+    template<Arithmetic T>
+    friend Double operator>(T lhs, Double rhs) { return Double(lhs) > rhs; }
+    template<Arithmetic T>
+    friend Double operator<(Double lhs, T rhs) { return lhs < Double(rhs); }
+    template<Arithmetic T>
+    friend Double operator<(T lhs, Double rhs) { return Double(lhs) < rhs; }
 
     template<Arithmetic T>
     friend Double operator+(Double lhs, T rhs) { return lhs + Double(rhs); }
@@ -85,6 +103,7 @@ private:
 [[nodiscard]] Double max(Double a, Double b);
 [[nodiscard]] Double min(Double a, Double b);
 [[nodiscard]] Double abs(Double x);
+[[nodiscard]] Double where(Double condition, Double true_branch, Double false_branch);
 
 [[nodiscard]] Double input(std::string_view name);
 [[nodiscard]] Double input();
@@ -93,3 +112,4 @@ private:
 [[nodiscard]] Double grad(Double output, Double wrt);
 
 } // namespace gc
+

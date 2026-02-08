@@ -67,6 +67,14 @@ Double& Double::operator/=(const Double& rhs) {
     return *this;
 }
 
+Double operator>(Double lhs, Double rhs) {
+    return Double{Node::binary(OpKind::GreaterThan, std::move(lhs.node_), std::move(rhs.node_))};
+}
+
+Double operator<(Double lhs, Double rhs) {
+    return Double{Node::binary(OpKind::LessThan, std::move(lhs.node_), std::move(rhs.node_))};
+}
+
 Double sqrt(Double x) {
     return Double{Node::unary(OpKind::Sqrt, x.node())};
 }
@@ -93,6 +101,10 @@ Double min(Double a, Double b) {
 
 Double abs(Double x) {
     return Double{Node::unary(OpKind::Abs, x.node())};
+}
+
+Double where(Double condition, Double true_branch, Double false_branch) {
+    return Double{Node::ternary(OpKind::Select, condition.node(), true_branch.node(), false_branch.node())};
 }
 
 Double input(std::string_view name) {
